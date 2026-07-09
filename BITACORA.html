@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Mantenimiento</title>
+
+<style>
+  :root {
+    --azul: #0a2d6e;
+    --azul-medio: #1a4fa0;
+    --azul-claro: #e8f0fc;
+    --acento: #f0a500;
+    --rojo: #d32f2f;
+    --verde: #2e7d32;
+    --gris: #f4f6fb;
+    --borde: #d0d7e8;
+    --texto: #1a2340;
+    --sub: #5a6480;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--gris);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--azul);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(10,45,110,0.3);
+  }
+
+  header .logo {
+    width: 38px;
+    height: 38px;
+    background: var(--acento);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  header p {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 1px;
+  }
+
+  .turno-bar {
+    background: var(--azul-medio);
+    display: flex;
+    padding: 0 16px;
+  }
+
+  .turno-btn {
+    flex: 1;
+    padding: 11px 8px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .turno-btn.active {
+    color: white;
+    border-bottom-color: var(--acento);
+  }
+
+  .turno-auto-bar {
+    padding: 10px 16px;
+    justify-content: center;
+  }
+
+  .turno-auto-box {
+    width: 100%;
+    max-width: 650px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    text-align: center;
+  }
+
+  .turno-auto-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.75;
+    letter-spacing: 0.8px;
+  }
+
+  .turno-auto-box strong {
+    display: block;
+    font-size: 20px;
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  .turno-auto-box small {
+    display: block;
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .container {
+    padding: 16px;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(10,45,110,0.08);
+    border: 1px solid var(--borde);
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azul);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .card-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--acento);
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sub);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid var(--borde);
+    border-radius: 8px;
+    font-size: 15px;
+    color: var(--texto);
+    background: white;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--azul-medio);
+    box-shadow: 0 0 0 3px rgba(26,79,160,0.1);
+  }
+
+  input[readonly] {
+    background: #eef2f7;
+    color: var(--azul);
+    font-weight: 700;
+  }
+
+  input.input-error {
+    border-color: var(--rojo);
+    background: #fff5f5;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+
+  .hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--sub);
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .falla-card {
+    background: var(--azul-claro);
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .falla-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .falla-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azul);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-mtto {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .btn-remove {
+    background: none;
+    border: none;
+    color: var(--rojo);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .falla-desc {
+    background: white;
+    border: 1.5px solid var(--azul-medio);
+    border-radius: 6px;
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--azul);
+    font-weight: 600;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+  }
+
+  .sin-fallas-badge {
+    background: #e8f5e9;
+    border: 1.5px solid #a5d6a7;
+    border-radius: 6px;
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--verde);
+    font-weight: 600;
+    margin-top: 6px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .dept-btn {
+    padding: 10px 6px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .dept-btn.mtto { background: #e3f2fd; color: #1565c0; }
+  .dept-btn.calidad { background: #fff3e0; color: #e65100; }
+  .dept-btn.prod { background: #e8f5e9; color: #2e7d32; }
+  .dept-btn.manuf { background: #f3e5f5; color: #7b1fa2; }
+  .dept-btn.material { background: #efebe9; color: #6d4c41; }
+  .dept-btn.default { background: white; color: var(--azul); border-color: var(--borde); }
+
+  .dept-btn.selected {
+    border-color: currentColor;
+    box-shadow: 0 0 0 2px currentColor;
+  }
+
+  .btn-add {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 2px dashed var(--azul-medio);
+    border-radius: 10px;
+    color: var(--azul-medio);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    margin-bottom: 14px;
+  }
+
+  .btn-add:hover {
+    background: var(--azul-claro);
+    border-color: var(--azul);
+    color: var(--azul);
+  }
+
+  .btn-add:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  .btn-save {
+    width: 100%;
+    padding: 15px;
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-save:hover { background: var(--azul-medio); }
+  .btn-save:disabled { background: #9aa5c0; cursor: not-allowed; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--verde);
+    color: white;
+    padding: 13px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+    z-index: 200;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--rojo); }
+
+  .resumen-contador {
+    background: var(--azul);
+    color: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .resumen-contador span { opacity: 0.7; }
+
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,45,110,0.6);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .loading-overlay.show { display: flex; }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .required { color: var(--rojo); }
+
+  .combo {
+    position: relative;
+  }
+
+  .combo input[type="text"] {
+    padding-right: 34px;
+  }
+
+  .combo::after {
+    content: '⌕';
+    position: absolute;
+    right: 12px;
+    top: 39px;
+    color: var(--sub);
+    pointer-events: none;
+    font-size: 14px;
+  }
+
+  .combo-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 230px;
+    overflow-y: auto;
+    background: white;
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(10,45,110,0.18);
+    z-index: 500;
+  }
+
+  .combo-list.show {
+    display: block;
+  }
+
+  .combo-option {
+    padding: 10px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #eef2f7;
+  }
+
+  .combo-option:last-child {
+    border-bottom: none;
+  }
+
+  .combo-option:hover,
+  .combo-option.active {
+    background: var(--azul-claro);
+    color: var(--azul);
+    font-weight: 600;
+  }
+
+  .combo-empty {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--sub);
+  }
+
+  .config-status {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 10px;
+  }
+
+  @media(max-width: 600px) {
+    .row-2,
+    .dept-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .toast {
+      width: calc(100% - 32px);
+      justify-content: center;
+      white-space: normal;
+      text-align: center;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">🔧</div>
+  <div>
+    <h1>Bitácora de Mantenimiento</h1>
+    <p id="fecha-display"></p>
+  </div>
+</header>
+
+<div class="turno-bar turno-auto-bar">
+  <div class="turno-auto-box">
+    <span class="turno-auto-label">TURNO AUTOMÁTICO</span>
+    <strong id="turno-display">Calculando...</strong>
+    <small id="turno-horario">—</small>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-title">Datos del Turno</div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>TL Mantenimiento <span class="required">*</span></label>
+        <div class="combo">
+          <input type="text" id="tl-search" placeholder="Buscar TL..." autocomplete="off"
+                 onfocus="abrirCombo('tl')" oninput="filtrarCombo('tl')" onkeydown="teclaCombo(event, 'tl')">
+          <input type="hidden" id="tl">
+          <div class="combo-list" id="tl-list"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Técnico <span class="required">*</span></label>
+        <div class="combo">
+          <input type="text" id="tecnico-search" placeholder="Buscar técnico..." autocomplete="off"
+                 onfocus="abrirCombo('tecnico')" oninput="filtrarCombo('tecnico')" onkeydown="teclaCombo(event, 'tecnico')">
+          <input type="hidden" id="tecnico">
+          <div class="combo-list" id="tecnico-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-status" id="config-status">
+      Cargando configuración...
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Registros del Turno</div>
+    <div id="fallas-container"></div>
+    <button class="btn-add" onclick="agregarFalla()" id="btn-agregar" disabled>＋ Agregar registro</button>
+  </div>
+
+  <div id="resumen" style="display:none">
+    <div class="resumen-contador">
+      <span>Total de registros</span>
+      <span id="total-registros">0</span>
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="guardarTodo()" id="btn-guardar" disabled>
+    💾 Guardar Registros de Mantenimiento
+  </button>
+
+  <div style="height: 30px;"></div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <span>Guardando registros...</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0lfEYzC-CCrHuz10iPWQjRh--MWzHE2lVNty7DMYuF-ZvzpKaNM28xrUJScHNrErdPA/exec';
+const CONFIG_URL = APPS_SCRIPT_URL + '?action=configBitacora&callback=recibirConfigBitacora';
+
+let CONFIG = {};
+let FALLAS = {};
+let LINEAS = [];
+let MODELOS = [];
+let ESTACIONES = {};
+let DEPARTAMENTOS = [];
+
+let turnoActual = 'A';
+let fallaCount = 0;
+let configLista = false;
+
+const COMBOS = {};
+const AFTER_SELECT = {};
+
+const now = new Date();
+
+document.getElementById('fecha-display').textContent =
+  now.toLocaleDateString('es-MX', {
+    weekday:'long',
+    year:'numeric',
+    month:'long',
+    day:'numeric'
+  });
+
+function obtenerHoraActualHTML() {
+  const ahora = new Date();
+  const h = String(ahora.getHours()).padStart(2, '0');
+  const m = String(ahora.getMinutes()).padStart(2, '0');
+
+  return h + ':' + m;
+}
+
+function calcularTurnoActualHTML() {
+  const ahora = new Date();
+  const h = ahora.getHours();
+
+  return h >= 6 && h < 18 ? 'A' : 'B';
+}
+
+function obtenerHorarioTurnoHTML(turno) {
+  return turno === 'A'
+    ? '06:00 - 17:59'
+    : '18:00 - 05:59';
+}
+
+function formatearFechaMX(fecha) {
+  return fecha.toLocaleDateString('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+function obtenerContextoRegistroHTML() {
+  const ahora = new Date();
+  const turno = calcularTurnoActualHTML();
+
+  return {
+    fechaRegistro: formatearFechaMX(ahora),
+    horaRegistro: obtenerHoraActualHTML(),
+    turno: turno
+  };
+}
+
+function obtenerFechaRegistroPorHora(hora) {
+  const ahora = new Date();
+  const horaActual = ahora.getHours();
+  const turnoSistema = calcularTurnoActualHTML();
+
+  if (!hora || !hora.includes(':')) {
+    return formatearFechaMX(ahora);
+  }
+
+  const hRegistro = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(hRegistro)) {
+    return formatearFechaMX(ahora);
+  }
+
+  /*
+    Caso especial Turno B después de medianoche:
+    Si son 00:00 a 05:59 y el usuario registra una hora de 18:00 a 23:59,
+    esa falla ocurrió el día anterior.
+  */
+  if (turnoSistema === 'B' && horaActual < 6 && hRegistro >= 18) {
+    const ayer = new Date(ahora);
+    ayer.setDate(ayer.getDate() - 1);
+    return formatearFechaMX(ayer);
+  }
+
+  return formatearFechaMX(ahora);
+}
+
+function actualizarTurnoAutomaticoHTML() {
+  turnoActual = calcularTurnoActualHTML();
+
+  const display = document.getElementById('turno-display');
+  const horario = document.getElementById('turno-horario');
+
+  if (display) {
+    display.textContent = 'TURNO ' + turnoActual;
+  }
+
+  if (horario) {
+    horario.textContent = obtenerHorarioTurnoHTML(turnoActual);
+  }
+}
+
+function obtenerTurnoPorHora(hora) {
+  if (!hora || !hora.includes(':')) {
+    return '';
+  }
+
+  const h = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(h)) {
+    return '';
+  }
+
+  if (h >= 6 && h < 18) {
+    return 'A';
+  }
+
+  return 'B';
+}
+
+function horaPerteneceATurnoActual(hora) {
+  if (!hora || !hora.includes(':')) {
+    return false;
+  }
+
+  const turnoSistema = calcularTurnoActualHTML();
+  const h = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(h)) {
+    return false;
+  }
+
+  if (turnoSistema === 'A') {
+    return h >= 6 && h < 18;
+  }
+
+  return h >= 18 || h < 6;
+}
+
+function configurarHoraRegistro(id) {
+  const inputHora = document.getElementById('hora-' + id);
+  const hintHora = document.getElementById('hora-hint-' + id);
+
+  if (!inputHora) {
+    return;
+  }
+
+  const turnoSistema = calcularTurnoActualHTML();
+
+  inputHora.dataset.turnoActual = turnoSistema;
+
+  if (turnoSistema === 'A') {
+    inputHora.min = '06:00';
+    inputHora.max = '17:59';
+    inputHora.title = 'Solo puedes registrar dentro del turno A: 06:00 a 17:59';
+
+    if (hintHora) {
+      hintHora.textContent = 'Turno actual A: solo se permite registrar de 06:00 a 17:59';
+    }
+  } else {
+    /*
+      No se usa min/max en Turno B porque cruza medianoche.
+      HTML no maneja bien un rango tipo 18:00 a 05:59.
+      Por eso se valida con JavaScript al cambiar y al guardar.
+    */
+    inputHora.removeAttribute('min');
+    inputHora.removeAttribute('max');
+    inputHora.title = 'Solo puedes registrar dentro del turno B: 18:00 a 05:59';
+
+    if (hintHora) {
+      hintHora.textContent = 'Turno actual B: solo se permite registrar de 18:00 a 05:59';
+    }
+  }
+}
+
+function validarHoraRegistro(id, mostrarMensaje) {
+  const inputHora = document.getElementById('hora-' + id);
+
+  if (!inputHora) {
+    return true;
+  }
+
+  const hora = inputHora.value;
+  const turnoSistema = calcularTurnoActualHTML();
+
+  inputHora.classList.remove('input-error');
+
+  if (!hora) {
+    inputHora.classList.add('input-error');
+    return false;
+  }
+
+  if (!horaPerteneceATurnoActual(hora)) {
+    inputHora.classList.add('input-error');
+
+    if (mostrarMensaje) {
+      showToast(
+        '⚠️ Solo puedes registrar horas del turno actual: Turno ' + turnoSistema +
+        ' (' + obtenerHorarioTurnoHTML(turnoSistema) + ')',
+        true
+      );
+    }
+
+    inputHora.value = obtenerHoraActualHTML();
+    setTimeout(function() {
+      inputHora.classList.remove('input-error');
+    }, 500);
+
+    return false;
+  }
+
+  return true;
+}
+
+function configurarTodasLasHorasRegistro() {
+  document.querySelectorAll('.falla-card').forEach(card => {
+    const id = card.id.replace('falla-', '');
+    configurarHoraRegistro(id);
+    validarHoraRegistro(id, false);
+  });
+}
+
+function limpiarTexto(valor) {
+  return String(valor || '').trim();
+}
+
+function campoVacio(valor) {
+  return limpiarTexto(valor) === '';
+}
+
+function obtenerValor(id) {
+  const el = document.getElementById(id);
+  return el ? limpiarTexto(el.value) : '';
+}
+
+function cargarConfiguracionDesdePortal() {
+  const script = document.createElement('script');
+  script.src = CONFIG_URL;
+  script.onerror = function() {
+    document.getElementById('config-status').textContent = 'No se pudo cargar la configuración.';
+    showToast('⚠️ No se pudo cargar la configuración', true);
+  };
+
+  document.body.appendChild(script);
+}
+
+function recibirConfigBitacora(data) {
+  CONFIG = data || {};
+
+  FALLAS = CONFIG.fallas || {};
+  LINEAS = CONFIG.lineas || [];
+  MODELOS = CONFIG.modelos || [];
+  ESTACIONES = CONFIG.estaciones || {};
+
+  DEPARTAMENTOS = asegurarDepartamentosMantenimiento(
+    CONFIG.departamentosMantenimiento || []
+  );
+
+  initCombo('tl', listaSimple(CONFIG.tl || []));
+  initCombo('tecnico', listaSimple(CONFIG.tecnicosMantenimiento || []));
+
+  document.getElementById('config-status').textContent =
+    'Configuración cargada: ' +
+    LINEAS.length + ' líneas, ' +
+    MODELOS.length + ' modelos, ' +
+    Object.keys(FALLAS).length + ' códigos.';
+
+  configLista = true;
+
+  document.getElementById('btn-agregar').disabled = false;
+  document.getElementById('btn-guardar').disabled = false;
+
+  document.getElementById('fallas-container').innerHTML = '';
+  fallaCount = 0;
+  agregarFalla();
+}
+
+function asegurarDepartamentosMantenimiento(lista) {
+  const base = [
+    'Mantenimiento',
+    'Produccion',
+    'Calidad',
+    'Manufactura',
+    'Materiales'
+  ];
+
+  const salida = [];
+
+  (lista || []).forEach(dep => {
+    const d = String(dep || '').trim();
+
+    if (!d) return;
+
+    const existe = salida.some(x => normalizar(x) === normalizar(d));
+
+    if (!existe) {
+      salida.push(d);
+    }
+  });
+
+  base.forEach(dep => {
+    const existe = salida.some(x => normalizar(x) === normalizar(dep));
+
+    if (!existe) {
+      salida.push(dep);
+    }
+  });
+
+  return salida;
+}
+
+function listaSimple(lista) {
+  return (lista || []).map(x => ({
+    value: String(x),
+    label: String(x)
+  }));
+}
+
+function listaFallas() {
+  return Object.entries(FALLAS).map(([codigo, desc]) => ({
+    value: String(codigo),
+    label: String(codigo) + ' — ' + String(desc)
+  }));
+}
+
+function estacionesDeLinea(linea) {
+  return listaSimple(ESTACIONES[linea] || []);
+}
+
+function normalizar(txt) {
+  return String(txt || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function initCombo(id, opciones) {
+  COMBOS[id] = {
+    opciones: opciones || [],
+    filtradas: opciones || [],
+    index: -1
+  };
+
+  const search = document.getElementById(id + '-search');
+  const hidden = document.getElementById(id);
+  const list = document.getElementById(id + '-list');
+
+  if (!search || !hidden || !list) return;
+
+  search.value = '';
+  hidden.value = '';
+  renderCombo(id);
+}
+
+function abrirCombo(id) {
+  if (!COMBOS[id]) return;
+  filtrarCombo(id);
+  document.getElementById(id + '-list').classList.add('show');
+}
+
+function cerrarCombos() {
+  document.querySelectorAll('.combo-list').forEach(el => el.classList.remove('show'));
+}
+
+function filtrarCombo(id) {
+  if (!COMBOS[id]) return;
+
+  const search = document.getElementById(id + '-search');
+  const hidden = document.getElementById(id);
+
+  hidden.value = '';
+
+  const q = normalizar(search.value);
+  const opciones = COMBOS[id].opciones || [];
+
+  COMBOS[id].filtradas = opciones.filter(op => {
+    return normalizar(op.label).includes(q) || normalizar(op.value).includes(q);
+  });
+
+  COMBOS[id].index = COMBOS[id].filtradas.length > 0 ? 0 : -1;
+
+  renderCombo(id);
+  document.getElementById(id + '-list').classList.add('show');
+}
+
+function renderCombo(id) {
+  const list = document.getElementById(id + '-list');
+  if (!list || !COMBOS[id]) return;
+
+  const filtradas = COMBOS[id].filtradas || [];
+  const index = COMBOS[id].index;
+
+  if (filtradas.length === 0) {
+    list.innerHTML = '<div class="combo-empty">Sin resultados</div>';
+    return;
+  }
+
+  list.innerHTML = filtradas.slice(0, 40).map((op, i) => {
+    const active = i === index ? ' active' : '';
+
+    return '<div class="combo-option' + active + '" onclick="seleccionarCombo(\'' + id + '\', ' + i + ')">' +
+      escapeHtml(op.label) +
+    '</div>';
+  }).join('');
+}
+
+function teclaCombo(e, id) {
+  if (!COMBOS[id]) return;
+
+  const list = document.getElementById(id + '-list');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+
+    if (COMBOS[id].filtradas.length === 0) return;
+
+    COMBOS[id].index = Math.min(
+      COMBOS[id].index + 1,
+      COMBOS[id].filtradas.length - 1
+    );
+
+    renderCombo(id);
+    list.classList.add('show');
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+
+    if (COMBOS[id].filtradas.length === 0) return;
+
+    COMBOS[id].index = Math.max(COMBOS[id].index - 1, 0);
+
+    renderCombo(id);
+    list.classList.add('show');
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+
+    if (COMBOS[id].filtradas.length > 0) {
+      const idx = COMBOS[id].index >= 0 ? COMBOS[id].index : 0;
+      seleccionarCombo(id, idx);
+    }
+  }
+
+  if (e.key === 'Escape') {
+    cerrarCombos();
+  }
+}
+
+function seleccionarCombo(id, idx) {
+  if (!COMBOS[id]) return;
+
+  const op = COMBOS[id].filtradas[idx];
+
+  if (!op) return;
+
+  document.getElementById(id + '-search').value = op.label;
+  document.getElementById(id).value = op.value;
+
+  cerrarCombos();
+
+  if (typeof AFTER_SELECT[id] === 'function') {
+    AFTER_SELECT[id](op);
+  }
+}
+
+function limpiarCombo(id, opcionesNuevas) {
+  initCombo(id, opcionesNuevas || []);
+}
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function escapeAttr(text) {
+  return escapeHtml(text);
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.combo')) {
+    cerrarCombos();
+  }
+});
+
+function agregarFalla() {
+  if (!configLista) {
+    showToast('⚠️ Espera a que cargue la configuración', true);
+    return;
+  }
+
+  fallaCount++;
+  const n = fallaCount;
+
+  const div = document.createElement('div');
+  div.className = 'falla-card';
+  div.id = 'falla-' + n;
+
+  div.innerHTML =
+    '<div class="falla-header">' +
+      '<span class="falla-num">Registro #' + n + '</span>' +
+      '<span class="badge-mtto">MANTENIMIENTO</span>' +
+      (n > 1 ? '<button class="btn-remove" onclick="removerFalla(' + n + ')">✕</button>' : '') +
+    '</div>' +
+
+    '<div class="row-2">' +
+      '<div class="field">' +
+        '<label>Línea <span class="required">*</span></label>' +
+        '<div class="combo">' +
+          '<input type="text" id="linea-' + n + '-search" placeholder="Buscar línea..." autocomplete="off" ' +
+          'onfocus="abrirCombo(\'linea-' + n + '\')" oninput="filtrarCombo(\'linea-' + n + '\')" onkeydown="teclaCombo(event, \'linea-' + n + '\')">' +
+          '<input type="hidden" id="linea-' + n + '">' +
+          '<div class="combo-list" id="linea-' + n + '-list"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Modelo</label>' +
+        '<div class="combo">' +
+          '<input type="text" id="modelo-' + n + '-search" placeholder="Buscar modelo..." autocomplete="off" ' +
+          'onfocus="abrirCombo(\'modelo-' + n + '\')" oninput="filtrarCombo(\'modelo-' + n + '\')" onkeydown="teclaCombo(event, \'modelo-' + n + '\')">' +
+          '<input type="hidden" id="modelo-' + n + '">' +
+          '<div class="combo-list" id="modelo-' + n + '-list"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Hora del registro <span class="required">*</span></label>' +
+      '<input type="time" id="hora-' + n + '" onchange="validarHoraRegistro(' + n + ', true)" onblur="validarHoraRegistro(' + n + ', true)">' +
+      '<small class="hint" id="hora-hint-' + n + '"></small>' +
+    '</div>' +
+
+    '<div class="field">' +
+      '<label>Código de falla <span class="required">*</span></label>' +
+      '<div class="combo">' +
+        '<input type="text" id="codigo-' + n + '-search" placeholder="Buscar código o falla..." autocomplete="off" ' +
+        'onfocus="abrirCombo(\'codigo-' + n + '\')" oninput="filtrarCombo(\'codigo-' + n + '\')" onkeydown="teclaCombo(event, \'codigo-' + n + '\')">' +
+        '<input type="hidden" id="codigo-' + n + '">' +
+        '<div class="combo-list" id="codigo-' + n + '-list"></div>' +
+      '</div>' +
+      '<div class="falla-desc" id="desc-' + n + '">—</div>' +
+      '<div class="sin-fallas-badge" id="sf-badge-' + n + '">✅ Sin fallas / OK</div>' +
+    '</div>' +
+
+    '<div id="tm-section-' + n + '">' +
+      '<div class="row-2">' +
+        '<div class="field">' +
+          '<label>TM — Tiempo Muerto (min)</label>' +
+          '<input type="number" id="tm-' + n + '" min="0" placeholder="0">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>PP — Paro Programado (min)</label>' +
+          '<input type="number" id="pp-' + n + '" min="0" placeholder="0">' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>¿A quién se carga el TM? <span class="required">*</span></label>' +
+        '<div class="dept-grid" id="dept-grid-' + n + '">' +
+          crearBotonesDepartamento(n) +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Estación / Sistema</label>' +
+        '<div class="combo">' +
+          '<input type="text" id="st-' + n + '-search" placeholder="Primero selecciona línea..." autocomplete="off" ' +
+          'onfocus="abrirCombo(\'st-' + n + '\')" oninput="filtrarCombo(\'st-' + n + '\')" onkeydown="teclaCombo(event, \'st-' + n + '\')">' +
+          '<input type="hidden" id="st-' + n + '">' +
+          '<div class="combo-list" id="st-' + n + '-list"></div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label># Notificación</label>' +
+        '<input type="text" id="notif-' + n + '" placeholder="Opcional">' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label>Acción Correctiva</label>' +
+        '<textarea id="accion-' + n + '" placeholder="Describe la acción tomada..."></textarea>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('fallas-container').appendChild(div);
+
+  initCombo('linea-' + n, listaSimple(LINEAS));
+  initCombo('modelo-' + n, listaSimple(MODELOS));
+  initCombo('codigo-' + n, listaFallas());
+  initCombo('st-' + n, []);
+
+  document.getElementById('hora-' + n).value = obtenerHoraActualHTML();
+  configurarHoraRegistro(n);
+
+  AFTER_SELECT['linea-' + n] = function(op) {
+    const linea = op.value;
+    limpiarCombo('st-' + n, estacionesDeLinea(linea));
+    document.getElementById('st-' + n + '-search').placeholder = 'Buscar estación...';
+  };
+
+  AFTER_SELECT['codigo-' + n] = function() {
+    onCodigo(n);
+  };
+
+  actualizarResumen();
+  div.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function crearBotonesDepartamento(n) {
+  return (DEPARTAMENTOS || []).map(dep => {
+    const cls = claseDepto(dep);
+    const icon = iconoDepto(dep);
+
+    return '<button type="button" class="dept-btn ' + cls + '" data-n="' + n + '" data-depto="' + escapeAttr(dep) + '" onclick="handleDeptoClick(this)">' +
+      icon + ' ' + escapeHtml(dep) +
+    '</button>';
+  }).join('');
+}
+
+function claseDepto(dep) {
+  const d = normalizar(dep);
+
+  if (d.includes('mantenimiento') || d.includes('mtto')) return 'mtto';
+  if (d.includes('calidad')) return 'calidad';
+  if (d.includes('produccion')) return 'prod';
+  if (d.includes('manufactura')) return 'manuf';
+  if (d.includes('material')) return 'material';
+  if (d.includes('control')) return 'mtto';
+
+  return 'default';
+}
+
+function iconoDepto(dep) {
+  const d = normalizar(dep);
+
+  if (d.includes('mantenimiento') || d.includes('mtto')) return '🔧';
+  if (d.includes('calidad')) return '✅';
+  if (d.includes('produccion')) return '🏭';
+  if (d.includes('manufactura')) return '⚙️';
+  if (d.includes('material')) return '📦';
+  if (d.includes('control')) return '⚡';
+
+  return '📌';
+}
+
+function onCodigo(n) {
+  const codigo = obtenerValor('codigo-' + n);
+  const val = parseInt(codigo, 10);
+
+  const desc = document.getElementById('desc-' + n);
+  const badge = document.getElementById('sf-badge-' + n);
+  const tmSec = document.getElementById('tm-section-' + n);
+
+  if (campoVacio(codigo)) {
+    desc.textContent = '—';
+    desc.style.display = 'flex';
+    badge.style.display = 'none';
+    tmSec.style.display = 'block';
+    return;
+  }
+
+  if (val === 62) {
+    desc.style.display = 'none';
+    badge.style.display = 'flex';
+    tmSec.style.display = 'none';
+  } else {
+    desc.textContent = FALLAS[codigo] || FALLAS[val] || '—';
+    desc.style.display = 'flex';
+    badge.style.display = 'none';
+    tmSec.style.display = 'block';
+  }
+}
+
+function handleDeptoClick(btn) {
+  const n = btn.dataset.n;
+  document.querySelectorAll('[data-n="' + n + '"].dept-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function getDepto(n) {
+  const selected = document.querySelector('[data-n="' + n + '"].dept-btn.selected');
+  return selected ? selected.dataset.depto : '';
+}
+
+function removerFalla(n) {
+  const el = document.getElementById('falla-' + n);
+  if (el) el.remove();
+  actualizarResumen();
+}
+
+function actualizarResumen() {
+  const cards = document.querySelectorAll('.falla-card');
+  const res = document.getElementById('resumen');
+  const tot = document.getElementById('total-registros');
+
+  if (cards.length > 0) {
+    res.style.display = 'block';
+    tot.textContent = cards.length;
+  } else {
+    res.style.display = 'none';
+  }
+}
+
+function getFechaStr() {
+  const fechaActual = new Date();
+
+  return fechaActual.toLocaleDateString('es-MX', {
+    day:'2-digit',
+    month:'2-digit',
+    year:'numeric'
+  });
+}
+
+async function guardarTodo() {
+  const tl = obtenerValor('tl');
+  const tecnico = obtenerValor('tecnico');
+
+  const tlTexto = obtenerValor('tl-search');
+  const tecnicoTexto = obtenerValor('tecnico-search');
+
+  if (campoVacio(tlTexto) || campoVacio(tl)) {
+    showToast('⚠️ Selecciona un TL válido', true);
+    return;
+  }
+
+  if (campoVacio(tecnicoTexto) || campoVacio(tecnico)) {
+    showToast('⚠️ Selecciona un técnico válido', true);
+    return;
+  }
+
+  const cards = document.querySelectorAll('.falla-card');
+
+  if (cards.length === 0) {
+    showToast('⚠️ Agrega al menos un registro', true);
+    return;
+  }
+
+  let filas = [];
+
+  for (const card of cards) {
+    const id = card.id.replace('falla-', '');
+
+    const linea = obtenerValor('linea-' + id);
+    const lineaTexto = obtenerValor('linea-' + id + '-search');
+
+    const modelo = obtenerValor('modelo-' + id);
+    const modeloTexto = obtenerValor('modelo-' + id + '-search');
+
+    const hora = obtenerValor('hora-' + id);
+    const turnoSistema = calcularTurnoActualHTML();
+    const turnoCalculado = obtenerTurnoPorHora(hora);
+    const fechaRegistro = obtenerFechaRegistroPorHora(hora);
+
+    const codigo = obtenerValor('codigo-' + id);
+    const codigoTexto = obtenerValor('codigo-' + id + '-search');
+
+    if (campoVacio(lineaTexto) || campoVacio(linea)) {
+      showToast('⚠️ Selecciona una línea válida en Registro #' + id, true);
+      return;
+    }
+
+    if (!campoVacio(modeloTexto) && campoVacio(modelo)) {
+      showToast('⚠️ Selecciona un modelo válido en Registro #' + id, true);
+      return;
+    }
+
+    if (campoVacio(hora)) {
+      showToast('⚠️ Selecciona una hora válida en Registro #' + id, true);
+      return;
+    }
+
+    if (campoVacio(turnoCalculado)) {
+      showToast('⚠️ No se pudo calcular el turno en Registro #' + id, true);
+      return;
+    }
+
+    if (!horaPerteneceATurnoActual(hora)) {
+      showToast(
+        '⚠️ La hora del Registro #' + id + ' no pertenece al turno actual: Turno ' +
+        turnoSistema + ' (' + obtenerHorarioTurnoHTML(turnoSistema) + ')',
+        true
+      );
+      return;
+    }
+
+    if (campoVacio(codigoTexto) || campoVacio(codigo)) {
+      showToast('⚠️ Selecciona un código de falla válido en Registro #' + id, true);
+      return;
+    }
+
+    const tmVisible = document.getElementById('tm-section-' + id).style.display !== 'none';
+
+    const tm = tmVisible ? (obtenerValor('tm-' + id) || '0') : '0';
+    const pp = tmVisible ? (obtenerValor('pp-' + id) || '0') : '0';
+
+    const st = tmVisible ? obtenerValor('st-' + id) : '';
+    const stTexto = tmVisible ? obtenerValor('st-' + id + '-search') : '';
+
+    const notif = tmVisible ? obtenerValor('notif-' + id) : '';
+    const accion = tmVisible ? obtenerValor('accion-' + id) : '';
+
+    if (tmVisible && Number(tm) < 0) {
+      showToast('⚠️ El TM no puede ser negativo en Registro #' + id, true);
+      return;
+    }
+
+    if (tmVisible && Number(pp) < 0) {
+      showToast('⚠️ El PP no puede ser negativo en Registro #' + id, true);
+      return;
+    }
+
+    if (tmVisible && !campoVacio(stTexto) && campoVacio(st)) {
+      showToast('⚠️ Selecciona una estación válida en Registro #' + id, true);
+      return;
+    }
+
+    const depto = tmVisible ? limpiarTexto(getDepto(id)) : '';
+
+    if (tmVisible && campoVacio(depto)) {
+      showToast('⚠️ Selecciona departamento en Registro #' + id, true);
+      return;
+    }
+
+    filas.push([
+      fechaRegistro,
+      hora,
+      linea,
+      modelo,
+      turnoCalculado,
+      tl,
+      tecnico,
+      notif,
+      tm,
+      pp,
+      st,
+      codigo,
+      FALLAS[codigo] || FALLAS[parseInt(codigo, 10)] || '',
+      accion,
+      depto
+    ]);
+  }
+
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('btn-guardar').disabled = true;
+
+  const exito = await enviarASheets(filas);
+
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('btn-guardar').disabled = false;
+
+  if (exito) {
+    showToast('✅ ' + filas.length + ' registro(s) de mantenimiento guardado(s)', false);
+    setTimeout(() => limpiarFormulario(), 1800);
+  } else {
+    showToast('⚠️ No se pudo guardar. Revisa tu conexión.', true);
+  }
+}
+
+async function enviarASheets(filas) {
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({
+        filas: filas,
+        turno: calcularTurnoActualHTML(),
+        origen: 'Mantenimiento'
+      })
+    });
+
+    return true;
+  } catch (e) {
+    console.error('Error enviando a Google Sheets:', e);
+    return false;
+  }
+}
+
+function limpiarFormulario() {
+  document.getElementById('fallas-container').innerHTML = '';
+
+  document.getElementById('tl').value = '';
+  document.getElementById('tl-search').value = '';
+
+  document.getElementById('tecnico').value = '';
+  document.getElementById('tecnico-search').value = '';
+
+  fallaCount = 0;
+  actualizarResumen();
+  actualizarTurnoAutomaticoHTML();
+  agregarFalla();
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.classList.add('show');
+
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+actualizarTurnoAutomaticoHTML();
+
+setInterval(function() {
+  actualizarTurnoAutomaticoHTML();
+  configurarTodasLasHorasRegistro();
+}, 60000);
+
+cargarConfiguracionDesdePortal();
+</script>
+
+</body>
+</html>

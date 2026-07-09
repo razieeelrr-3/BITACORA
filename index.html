@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Bitácora Web</title>
+
+<style>
+  :root {
+    --azul: #0a2d6e;
+    --azul-medio: #1a4fa0;
+    --acento: #f0a500;
+    --morado: #7b1fa2;
+    --gris: #f4f6fb;
+    --texto: #1a2340;
+    --sub: #5a6480;
+    --borde: #d0d7e8;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(26,79,160,.18), transparent 35%),
+      radial-gradient(circle at bottom right, rgba(240,165,0,.18), transparent 30%),
+      var(--gris);
+    color: var(--texto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+  }
+
+  .portal {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(10,45,110,.18);
+  }
+
+  .header {
+    background: var(--azul);
+    color: white;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .logo {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 14px;
+    background: var(--acento);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  }
+
+  h1 {
+    font-size: 27px;
+    letter-spacing: .4px;
+    margin-bottom: 6px;
+  }
+
+  .header p {
+    font-size: 14px;
+    opacity: .82;
+  }
+
+  .body {
+    padding: 26px;
+  }
+
+  .intro {
+    text-align: center;
+    color: var(--sub);
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: white;
+    padding: 17px 18px;
+    border-radius: 15px;
+    margin-bottom: 14px;
+    font-weight: 800;
+    font-size: 17px;
+    box-shadow: 0 8px 18px rgba(10,45,110,.12);
+    transition: transform .15s ease, filter .15s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+  }
+
+  .btn span {
+    font-size: 25px;
+    width: 34px;
+    text-align: center;
+  }
+
+  .btn small {
+    display: block;
+    font-weight: 500;
+    font-size: 12px;
+    opacity: .82;
+    margin-top: 2px;
+  }
+
+  .mtto {
+    background: linear-gradient(135deg, var(--azul), var(--azul-medio));
+  }
+
+  .ctrl {
+    background: linear-gradient(135deg, var(--morado), #9c27b0);
+  }
+
+  .note {
+    margin-top: 18px;
+    padding: 13px 14px;
+    border-radius: 13px;
+    background: #eef2f7;
+    color: var(--sub);
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .footer {
+    text-align: center;
+    color: var(--sub);
+    font-size: 11px;
+    padding: 0 22px 22px;
+  }
+</style>
+</head>
+
+<body>
+
+<main class="portal">
+  <section class="header">
+    <div class="logo">📋</div>
+    <h1>Bitácora Web</h1>
+    <p>Portal de registros de planta</p>
+  </section>
+
+  <section class="body">
+    <p class="intro">
+      Selecciona el tipo de bitácora que deseas llenar.
+    </p>
+
+    <a class="btn mtto" href="./BITACORA.html">
+      <span>🔧</span>
+      <div>
+        Mantenimiento
+        <small>Registro de fallas, TM, PP y acciones correctivas</small>
+      </div>
+    </a>
+
+    <a class="btn ctrl" href="./BITACORA_CTRL.html">
+      <span>⚡</span>
+      <div>
+        Controles
+        <small>Registro de eventos de automatización y control</small>
+      </div>
+    </a>
+
+    <div class="note">
+      Este portal usa GitHub Pages solo para mostrar el formulario.
+      Los registros se guardan mediante Google Apps Script en Google Sheets.
+    </div>
+  </section>
+
+  <div class="footer">
+    Bitácora Web · Mantenimiento / Controles
+  </div>
+</main>
+
+</body>
+</html>
