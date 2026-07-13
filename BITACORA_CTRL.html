@@ -201,10 +201,23 @@
     font-weight: 700;
   }
 
+  input.input-error {
+    border-color: var(--rojo);
+    background: #fff5f5;
+  }
+
   textarea {
     resize: vertical;
     min-height: 80px;
     line-height: 1.5;
+  }
+
+  .hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--sub);
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   .row-2 {
@@ -307,7 +320,7 @@
   .dept-btn.controles { background: #f3e5f5; color: #7b1fa2; }
   .dept-btn.calidad { background: #fff3e0; color: #e65100; }
   .dept-btn.prod { background: #e8f5e9; color: #2e7d32; }
-  .dept-btn.manuf { background: #e3f2fd; color: #1565c0; }
+  .dept-btn.manuf { background: #f3e5f5; color: #7b1fa2; }
   .dept-btn.material { background: #efebe9; color: #6d4c41; }
   .dept-btn.default { background: white; color: var(--azul); border-color: var(--borde); }
 
@@ -623,7 +636,6 @@ document.getElementById('fecha-display').textContent =
 
 function obtenerHoraActualHTML() {
   const ahora = new Date();
-
   const h = String(ahora.getHours()).padStart(2, '0');
   const m = String(ahora.getMinutes()).padStart(2, '0');
 
@@ -639,8 +651,16 @@ function calcularTurnoActualHTML() {
 
 function obtenerHorarioTurnoHTML(turno) {
   return turno === 'A'
-    ? '06:00 - 18:00'
-    : '18:00 - 06:00';
+    ? '06:00 - 17:59'
+    : '18:00 - 05:59';
+}
+
+function formatearFechaMX(fecha) {
+  return fecha.toLocaleDateString('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 }
 
 function obtenerContextoRegistroHTML() {
@@ -648,14 +668,39 @@ function obtenerContextoRegistroHTML() {
   const turno = calcularTurnoActualHTML();
 
   return {
-    fechaRegistro: ahora.toLocaleDateString('es-MX', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }),
+    fechaRegistro: formatearFechaMX(ahora),
     horaRegistro: obtenerHoraActualHTML(),
     turno: turno
   };
+}
+
+function obtenerFechaRegistroPorHora(hora) {
+  const ahora = new Date();
+  const horaActual = ahora.getHours();
+  const turnoSistema = calcularTurnoActualHTML();
+
+  if (!hora || !hora.includes(':')) {
+    return formatearFechaMX(ahora);
+  }
+
+  const hRegistro = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(hRegistro)) {
+    return formatearFechaMX(ahora);
+  }
+
+  /*
+    Caso especial Turno B después de medianoche:
+    Si son 00:00 a 05:59 y el usuario registra una hora de 18:00 a 23:59,
+    esa falla ocurrió el día anterior.
+  */
+  if (turnoSistema === 'B' && horaActual < 6 && hRegistro >= 18) {
+    const ayer = new Date(ahora);
+    ayer.setDate(ayer.getDate() - 1);
+    return formatearFechaMX(ayer);
+  }
+
+  return formatearFechaMX(ahora);
 }
 
 function actualizarTurnoAutomaticoHTML() {
@@ -671,6 +716,126 @@ function actualizarTurnoAutomaticoHTML() {
   if (horario) {
     horario.textContent = obtenerHorarioTurnoHTML(turnoActual);
   }
+}
+
+function obtenerTurnoPorHora(hora) {
+  if (!hora || !hora.includes(':')) {
+    return '';
+  }
+
+  const h = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(h)) {
+    return '';
+  }
+
+  if (h >= 6 && h < 18) {
+    return 'A';
+  }
+
+  return 'B';
+}
+
+function horaPerteneceATurnoActual(hora) {
+  if (!hora || !hora.includes(':')) {
+    return false;
+  }
+
+  const turnoSistema = calcularTurnoActualHTML();
+  const h = parseInt(hora.split(':')[0], 10);
+
+  if (isNaN(h)) {
+    return false;
+  }
+
+  if (turnoSistema === 'A') {
+    return h >= 6 && h < 18;
+  }
+
+  return h >= 18 || h < 6;
+}
+
+function configurarHoraRegistro(id) {
+  const inputHora = document.getElementById('hora-' + id);
+  const hintHora = document.getElementById('hora-hint-' + id);
+
+  if (!inputHora) {
+    return;
+  }
+
+  const turnoSistema = calcularTurnoActualHTML();
+
+  inputHora.dataset.turnoActual = turnoSistema;
+
+  if (turnoSistema === 'A') {
+    inputHora.min = '06:00';
+    inputHora.max = '17:59';
+    inputHora.title = 'Solo puedes registrar dentro del turno A: 06:00 a 17:59';
+
+    if (hintHora) {
+      hintHora.textContent = 'Turno actual A: solo se permite registrar de 06:00 a 17:59';
+    }
+  } else {
+    /*
+      No se usa min/max en Turno B porque cruza medianoche.
+      HTML no maneja bien un rango tipo 18:00 a 05:59.
+      Por eso se valida con JavaScript al cambiar y al guardar.
+    */
+    inputHora.removeAttribute('min');
+    inputHora.removeAttribute('max');
+    inputHora.title = 'Solo puedes registrar dentro del turno B: 18:00 a 05:59';
+
+    if (hintHora) {
+      hintHora.textContent = 'Turno actual B: solo se permite registrar de 18:00 a 05:59';
+    }
+  }
+}
+
+function validarHoraRegistro(id, mostrarMensaje) {
+  const inputHora = document.getElementById('hora-' + id);
+
+  if (!inputHora) {
+    return true;
+  }
+
+  const hora = inputHora.value;
+  const turnoSistema = calcularTurnoActualHTML();
+
+  inputHora.classList.remove('input-error');
+
+  if (!hora) {
+    inputHora.classList.add('input-error');
+    return false;
+  }
+
+  if (!horaPerteneceATurnoActual(hora)) {
+    inputHora.classList.add('input-error');
+
+    if (mostrarMensaje) {
+      showToast(
+        '⚠️ Solo puedes registrar horas del turno actual: Turno ' + turnoSistema +
+        ' (' + obtenerHorarioTurnoHTML(turnoSistema) + ')',
+        true
+      );
+    }
+
+    inputHora.value = obtenerHoraActualHTML();
+    setTimeout(function() {
+      inputHora.classList.remove('input-error');
+    }, 500);
+
+    return false;
+  }
+
+  return true;
+}
+
+function configurarTodasLasHorasRegistro() {
+  document.querySelectorAll('.falla-card').forEach(card => {
+    const id = card.id.replace('falla-', '');
+    configurarHoraRegistro(id);
+    validarHoraRegistro(id, false);
+  });
 }
 
 function limpiarTexto(valor) {
@@ -931,6 +1096,10 @@ function escapeHtml(text) {
     .replaceAll("'", '&#039;');
 }
 
+function escapeAttr(text) {
+  return escapeHtml(text);
+}
+
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.combo')) {
     cerrarCombos();
@@ -981,7 +1150,8 @@ function agregarFalla() {
 
     '<div class="field">' +
       '<label>Hora del registro <span class="required">*</span></label>' +
-      '<input type="time" id="hora-' + n + '" readonly>' +
+      '<input type="time" id="hora-' + n + '" onchange="validarHoraRegistro(' + n + ', true)" onblur="validarHoraRegistro(' + n + ', true)">' +
+      '<small class="hint" id="hora-hint-' + n + '"></small>' +
     '</div>' +
 
     '<div class="field">' +
@@ -1044,6 +1214,7 @@ function agregarFalla() {
   initCombo('st-' + n, []);
 
   document.getElementById('hora-' + n).value = obtenerHoraActualHTML();
+  configurarHoraRegistro(n);
 
   AFTER_SELECT['linea-' + n] = function(op) {
     const linea = op.value;
@@ -1064,8 +1235,8 @@ function crearBotonesDepartamento(n) {
     const cls = claseDepto(dep);
     const icon = iconoDepto(dep);
 
-    return '<button type="button" class="dept-btn ' + cls + '" data-n="' + n + '" data-depto="' + dep + '" onclick="handleDeptoClick(this)">' +
-      icon + ' ' + dep +
+    return '<button type="button" class="dept-btn ' + cls + '" data-n="' + n + '" data-depto="' + escapeAttr(dep) + '" onclick="handleDeptoClick(this)">' +
+      icon + ' ' + escapeHtml(dep) +
     '</button>';
   }).join('');
 }
@@ -1078,7 +1249,7 @@ function claseDepto(dep) {
   if (d.includes('produccion')) return 'prod';
   if (d.includes('manufactura')) return 'manuf';
   if (d.includes('material')) return 'material';
-
+  
   return 'default';
 }
 
@@ -1186,11 +1357,6 @@ async function guardarTodo() {
     return;
   }
 
-  const contextoRegistro = obtenerContextoRegistroHTML();
-
-  turnoActual = contextoRegistro.turno;
-  actualizarTurnoAutomaticoHTML();
-
   let filas = [];
 
   for (const card of cards) {
@@ -1202,7 +1368,10 @@ async function guardarTodo() {
     const modelo = obtenerValor('modelo-' + id);
     const modeloTexto = obtenerValor('modelo-' + id + '-search');
 
-    const hora = contextoRegistro.horaRegistro;
+    const hora = obtenerValor('hora-' + id);
+    const turnoSistema = calcularTurnoActualHTML();
+    const turnoCalculado = obtenerTurnoPorHora(hora);
+    const fechaRegistro = obtenerFechaRegistroPorHora(hora);
 
     const codigo = obtenerValor('codigo-' + id);
     const codigoTexto = obtenerValor('codigo-' + id + '-search');
@@ -1214,6 +1383,25 @@ async function guardarTodo() {
 
     if (!campoVacio(modeloTexto) && campoVacio(modelo)) {
       showToast('⚠️ Selecciona un modelo válido en Registro #' + id, true);
+      return;
+    }
+
+    if (campoVacio(hora)) {
+      showToast('⚠️ Selecciona una hora válida en Registro #' + id, true);
+      return;
+    }
+
+    if (campoVacio(turnoCalculado)) {
+      showToast('⚠️ No se pudo calcular el turno en Registro #' + id, true);
+      return;
+    }
+
+    if (!horaPerteneceATurnoActual(hora)) {
+      showToast(
+        '⚠️ La hora del Registro #' + id + ' no pertenece al turno actual: Turno ' +
+        turnoSistema + ' (' + obtenerHorarioTurnoHTML(turnoSistema) + ')',
+        true
+      );
       return;
     }
 
@@ -1256,11 +1444,11 @@ async function guardarTodo() {
     }
 
     filas.push([
-      contextoRegistro.fechaRegistro,
+      fechaRegistro,
       hora,
       linea,
       modelo,
-      contextoRegistro.turno,
+      turnoCalculado,
       tl,
       tecnico,
       notif,
@@ -1268,7 +1456,7 @@ async function guardarTodo() {
       pp,
       st,
       codigo,
-      FALLAS[codigo] || '',
+      FALLAS[codigo] || FALLAS[parseInt(codigo, 10)] || '',
       accion,
       depto
     ]);
@@ -1303,7 +1491,6 @@ async function enviarASheets(filas) {
     });
 
     return true;
-
   } catch (e) {
     console.error('Error enviando a Google Sheets:', e);
     return false;
@@ -1341,13 +1528,11 @@ actualizarTurnoAutomaticoHTML();
 
 setInterval(function() {
   actualizarTurnoAutomaticoHTML();
-
-  document.querySelectorAll('input[type="time"][id^="hora-"]').forEach(input => {
-    input.value = obtenerHoraActualHTML();
-  });
+  configurarTodasLasHorasRegistro();
 }, 60000);
 
 cargarConfiguracionDesdePortal();
 </script>
+
 </body>
 </html>
