@@ -1013,7 +1013,7 @@ function renderCombo(id) {
     return;
   }
 
-  list.innerHTML = filtradas.slice(0, 40).map((op, i) => {
+  list.innerHTML = filtradas.slice().map((op, i) => {
     const active = i === index ? ' active' : '';
 
     return '<div class="combo-option' + active + '" onclick="seleccionarCombo(\'' + id + '\', ' + i + ')">' +
