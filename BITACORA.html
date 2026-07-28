@@ -324,6 +324,7 @@
   .dept-btn.material { background: #efebe9; color: #6d4c41; }
   .dept-btn.it { background: #e8f4dfd; color: #1565c0; }
   .dept-btn.finanzas { background: #fff8e1; color: #8d6e63; }
+  .dept-btn.compras { background: #e3f2fd; color: #1565c0; }
   .dept-btn.default { background: white; color: var(--azul); border-color: var(--borde); }
 
   .dept-btn.selected {
@@ -905,7 +906,8 @@ function asegurarDepartamentosMantenimiento(lista) {
     'Controles',
     'Materiales',
     'IT',
-    'Finanzas'
+    'Finanzas',
+    'Compras'
   ];
 
   const salida = [];
@@ -1258,6 +1260,7 @@ function claseDepto(dep) {
   if (d.includes('control')) return 'mtto';
   if (d.includes('it')) return 'it';
   if (d.includes('finanzas')) return 'finanzas';
+  if (d.includes('compras')) return 'compras';
 
   return 'default';
 }
@@ -1273,6 +1276,7 @@ function iconoDepto(dep) {
   if (d.includes('control')) return '⚡';
   if (d.includes('it')) return '💻';
   if (d.includes('finanzas')) return '📊';
+  if (d.includes('compras')) return '🧮';
 
   return '📌';
 }
