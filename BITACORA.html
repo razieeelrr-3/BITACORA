@@ -1250,8 +1250,8 @@ function claseDepto(dep) {
   if (d.includes('manufactura')) return 'manuf';
  if (d.includes('material')) return 'material';
   if (d.includes('control')) return 'mtto';
-  if (d.includes('IT')) return 'IT';
-  if (d.includes('Finanzas')) return 'Finanzas';
+  if (d.includes('IT')) return 'it';
+  if (d.includes('Finanzas')) return 'finanzas';
 
   return 'default';
 }
@@ -1265,7 +1265,7 @@ function iconoDepto(dep) {
   if (d.includes('manufactura')) return '⚙️';
   if (d.includes('material')) return '📦';
   if (d.includes('control')) return '⚡';
-  if (d.includes('IT')) return '💻';
+  if (d.includes('it')) return '💻';
   if (d.includes('Finanzas')) return '📊';
 
   return '📌';
